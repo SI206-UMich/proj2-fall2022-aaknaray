@@ -5,7 +5,6 @@ import os
 import csv
 import unittest
 
-
 def get_listings_from_search_results(html_file):
     with open(html_file, "r") as file:
         soup = BeautifulSoup(file, 'html.parser')
@@ -21,34 +20,45 @@ def get_listings_from_search_results(html_file):
             cost.append(price[i].text.strip('$'))
     for i in range(len(titles)):
         final.append((titles[i], int(cost[i]), l_id[i]))
-    return final   
+    return final
+
+#get_listings_from_search_results("html_files/mission_district_search_results.html")
 
 def get_listing_information(listing_id):
-    url = "listing_" + str(listing_id) + ".html"
+    url = "html_files/" + "listing_" + str(listing_id) + ".html"
     with open(url, "r") as file:
         soup = BeautifulSoup(file, 'html.parser')
         policynum = []
         bedroom_l = []
+        room_type = None
         policy = soup.find_all('li', class_="f19phm7j dir dir-ltr")
-        room = soup.find_all('span', class_="ll4r2nl dir dir-ltr")
+        room = soup.find_all('span')
         bedroom = soup.find_all('span')
         for i in range(len(bedroom)):
             if "bedroom" in bedroom[i].text:
                 bedroom_l.append(bedroom[i].text)
-        numberbeds = bedroom_l[0].split(" ")
-        numberbeds = int(numberbeds[0])
-        for i in range(len(policy)):
-            policynum.append(policy[i].text.split(" ")[2])
+        if len(bedroom_l) > 0:
+            numberbeds = bedroom_l[0].split(" ")
+            numberbeds = numberbeds[0]
+        else:
+            numberbeds = 1
+        for i in range(len(room)):
             word_lst = room[i].text.split(" ")
-            if "private" in word_lst:
-                room_type = "Private Room"
+            if "entire" in word_lst:
+                room_type = "Entire Room"
             elif "shared" in word_lst:
                 room_type = "Shared Room"
-            elif "entire" in word_lst:
-                room_type = "Entire Room"
+            elif "private" in word_lst:
+                room_type = "Private Room"
+        for i in range(len(policy)):
+            try:
+                policynum.append(policy[i].text.split(" ")[2])
+            except:
+                policynum.append("Exempt")
         policynumber = policynum[0]
     return (policynumber, room_type, numberbeds)
 
+#print(get_listing_information(51106622))
 
 def get_detailed_listing_database(html_file):
     """
@@ -64,8 +74,16 @@ def get_detailed_listing_database(html_file):
         ...
     ]
     """
-    pass
+    two_lst = []
+    final = []
+    one_lst = get_listings_from_search_results(html_file)
+    for item in one_lst:
+        two_lst.append(get_listing_information(item[2]))
+    for i in range(len(one_lst)):
+        final.append(one_lst[i] + two_lst[i])
+    return final
 
+get_detailed_listing_database("html_files/mission_district_search_results.html")
 
 def write_csv(data, filename):
     """
@@ -90,7 +108,7 @@ def write_csv(data, filename):
     This function should not return anything.
     """
     pass
-
+'''
 
 def check_policy_numbers(data):
     """
@@ -130,6 +148,7 @@ def extra_credit(listing_id):
     """
     pass
 
+'''
 '''
 class TestCases(unittest.TestCase):
 
@@ -231,8 +250,8 @@ class TestCases(unittest.TestCase):
 
         # check that the first element in the list is '16204265'
         pass
-
 '''
+
 if __name__ == '__main__':
     database = get_detailed_listing_database("html_files/mission_district_search_results.html")
     write_csv(database, "airbnb_dataset.csv")
