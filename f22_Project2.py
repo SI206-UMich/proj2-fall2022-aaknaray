@@ -40,6 +40,9 @@ def get_listing_information(listing_id):
         if len(bedroom_l) > 0:
             numberbeds = bedroom_l[0].split(" ")
             numberbeds = numberbeds[0]
+            if numberbeds == 'Cozy':
+                numberbeds = 1
+            numberbeds = int(numberbeds)
         else:
             numberbeds = 1
         for i in range(len(room)):
@@ -51,29 +54,17 @@ def get_listing_information(listing_id):
             elif "private" in word_lst:
                 room_type = "Private Room"
         for i in range(len(policy)):
-            try:
-                policynum.append(policy[i].text.split(" ")[2])
-            except:
-                policynum.append("Exempt")
-        policynumber = policynum[0]
+            policynum.append(policy[i].text.split(" "))
+        policynumber = policynum[0][2]
+        if policynumber == "City":
+            policynumber = 'Pending'
+        elif policynumber == 'pending':
+            policynumber = policynumber.capitalize()
+        elif policynumber == 'License':
+            policynumber = 'Exempt'
     return (policynumber, room_type, numberbeds)
 
-#print(get_listing_information(51106622))
-
 def get_detailed_listing_database(html_file):
-    """
-    Write a function that calls the above two functions in order to return
-    the complete listing information using the functions you’ve created.
-    This function takes in a variable representing the location of the search results html file.
-    The return value should be in this format:
-
-
-    [
-        (Listing Title 1,Cost 1,Listing ID 1,Policy Number 1,Place Type 1,Number of Bedrooms 1),
-        (Listing Title 2,Cost 2,Listing ID 2,Policy Number 2,Place Type 2,Number of Bedrooms 2),
-        ...
-    ]
-    """
     two_lst = []
     final = []
     one_lst = get_listings_from_search_results(html_file)
@@ -83,54 +74,30 @@ def get_detailed_listing_database(html_file):
         final.append(one_lst[i] + two_lst[i])
     return final
 
-get_detailed_listing_database("html_files/mission_district_search_results.html")
+# data = get_detailed_listing_database("html_files/mission_district_search_results.html")
+# print(data)
 
 def write_csv(data, filename):
-    """
-    Write a function that takes in a list of tuples (called data, i.e. the
-    one that is returned by get_detailed_listing_database()), sorts the tuples in
-    ascending order by cost, writes the data to a csv file, and saves it
-    to the passed filename. The first row of the csv should contain
-    "Listing Title", "Cost", "Listing ID", "Policy Number", "Place Type", "Number of Bedrooms",
-    respectively as column headers. For each tuple in data, write a new
-    row to the csv, placing each element of the tuple in the correct column.
-
-    When you are done your CSV file should look like this:
-
-    Listing Title,Cost,Listing ID,Policy Number,Place Type,Number of Bedrooms
-    title1,cost1,id1,policy_number1,place_type1,num_bedrooms1
-    title2,cost2,id2,policy_number2,place_type2,num_bedrooms2
-    title3,cost3,id3,policy_number3,place_type3,num_bedrooms3
-    ...
-
-    In order of least cost to most cost.
-
-    This function should not return anything.
-    """
-    pass
-'''
+    sorted_data = data.sort(key = lambda x: x[1])
+    with open(filename,'w') as new:
+        csv_new = csv.writer(new)
+        csv_new.writerow(['Listing Title','Cost', 'Listing ID', 'Policy Number', 'Place Type', 'Number of Bedrooms'])
+        for row in data:
+            csv_new.writerow(row)
+    return None
 
 def check_policy_numbers(data):
-    """
-    Write a function that takes in a list of tuples called data, (i.e. the one that is returned by
-    get_detailed_listing_database()), and parses through the policy number of each, validating the
-    policy number matches the policy number format. Ignore any pending or exempt listings.
-    Return the listing numbers with respective policy numbers that do not match the correct format.
-        Policy numbers are a reference to the business license San Francisco requires to operate a
-        short-term rental. These come in two forms, where # is a number from [0-9]:
-            20##-00####STR
-            STR-000####
-    .
-    Return value should look like this:
-    [
-        listing id 1,
-        listing id 2,
-        ...
-    ]
-
-    """
-    pass
-
+    false = []
+    for item in data:
+        if item[3] == 'Pending' or item[3] == 'Exempt':
+            continue
+        else:
+            if re.search('20[0-9]{2}-00[0-9]{4}STR|STR-000[0-9]{4}''', item[3]):
+                continue
+            else:
+                false.append(item[3])
+    return False
+            
 
 def extra_credit(listing_id):
     """
@@ -149,7 +116,7 @@ def extra_credit(listing_id):
     pass
 
 '''
-'''
+
 class TestCases(unittest.TestCase):
 
     def test_get_listings_from_search_results(self):
