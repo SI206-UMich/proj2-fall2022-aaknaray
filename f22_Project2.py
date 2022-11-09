@@ -24,30 +24,30 @@ def get_listings_from_search_results(html_file):
     return final   
 
 def get_listing_information(listing_id):
-    """
-    Write a function to return relevant information in a tuple from an Airbnb listing id.
-    NOTE: Use the static files in the html_files folder, do NOT send requests to the actual website.
-    Information we're interested in:
-        string - Policy number: either a string of the policy number, "Pending", or "Exempt"
-            This field can be found in the section about the host.
-            Note that this is a text field the lister enters, this could be a policy number, or the word
-            "pending" or "exempt" or many others. Look at the raw data, decide how to categorize them into
-            the three categories.
-        string - Place type: either "Entire Room", "Private Room", or "Shared Room"
-            Note that this data field is not explicitly given from this page. Use the
-            following to categorize the data into these three fields.
-                "Private Room": the listing subtitle has the word "private" in it
-                "Shared Room": the listing subtitle has the word "shared" in it
-                "Entire Room": the listing subtitle has neither the word "private" nor "shared" in it
-        int - Number of bedrooms
-.
-    (
-        policy number,
-        place type,
-        number of bedrooms
-    )
-    """
-    pass
+    url = "listing_" + str(listing_id) + ".html"
+    with open(url, "r") as file:
+        soup = BeautifulSoup(file, 'html.parser')
+        policynum = []
+        bedroom_l = []
+        policy = soup.find_all('li', class_="f19phm7j dir dir-ltr")
+        room = soup.find_all('span', class_="ll4r2nl dir dir-ltr")
+        bedroom = soup.find_all('span')
+        for i in range(len(bedroom)):
+            if "bedroom" in bedroom[i].text:
+                bedroom_l.append(bedroom[i].text)
+        numberbeds = bedroom_l[0].split(" ")
+        numberbeds = int(numberbeds[0])
+        for i in range(len(policy)):
+            policynum.append(policy[i].text.split(" ")[2])
+            word_lst = room[i].text.split(" ")
+            if "private" in word_lst:
+                room_type = "Private Room"
+            elif "shared" in word_lst:
+                room_type = "Shared Room"
+            elif "entire" in word_lst:
+                room_type = "Entire Room"
+        policynumber = policynum[0]
+    return (policynumber, room_type, numberbeds)
 
 
 def get_detailed_listing_database(html_file):
