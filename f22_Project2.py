@@ -57,12 +57,14 @@ def get_listing_information(listing_id):
         if len(bedroom_l) > 0:
             numberbeds = bedroom_l[0].split(" ")
             numberbeds = numberbeds[0]
-            if numberbeds == 'Cozy':
+            if numberbeds not in ['1','2','3', '4', '5']:
                 numberbeds = 1
             numberbeds = int(numberbeds)
         else:
             numberbeds = 1
     return (policynumber, room_type, numberbeds)
+
+#print(get_listing_information(1550913))
 
 def get_detailed_listing_database(html_file):
     two_lst = []
@@ -121,7 +123,7 @@ def extra_credit(listing_id):
         else:
             return True
 
-extra_credit(1944564)
+#print(extra_credit(1944564))
 
 class TestCases(unittest.TestCase):
 
